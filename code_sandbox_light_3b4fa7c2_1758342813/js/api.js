@@ -4,7 +4,6 @@ class InvasiveSpeciesAPI {
         this.baseURL = '';  // Use relative URLs
         this.currentUser = null;
     }
-
     // Generic API request handler
     async makeRequest(endpoint, options = {}) {
         try {
@@ -15,59 +14,49 @@ class InvasiveSpeciesAPI {
                 },
                 ...options
             });
-
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-
             // Handle empty responses (e.g., DELETE requests)
             if (response.status === 204) {
                 return null;
             }
-
             return await response.json();
         } catch (error) {
             console.error('API request failed:', error);
             throw error;
         }
     }
-
     // Species API methods
     async getSpecies(params = {}) {
         const queryString = new URLSearchParams(params).toString();
         const endpoint = `tables/invasive_species${queryString ? '?' + queryString : ''}`;
         return await this.makeRequest(endpoint);
     }
-
     async getSpeciesById(id) {
         return await this.makeRequest(`tables/invasive_species/${id}`);
     }
-
     async createSpecies(speciesData) {
         return await this.makeRequest('tables/invasive_species', {
             method: 'POST',
             body: JSON.stringify(speciesData)
         });
     }
-
     async updateSpecies(id, speciesData) {
         return await this.makeRequest(`tables/invasive_species/${id}`, {
             method: 'PUT',
             body: JSON.stringify(speciesData)
         });
     }
-
     // Sighting Reports API methods
     async getReports(params = {}) {
         const queryString = new URLSearchParams(params).toString();
         const endpoint = `tables/sighting_reports${queryString ? '?' + queryString : ''}`;
         return await this.makeRequest(endpoint);
     }
-
     async getReportById(id) {
         return await this.makeRequest(`tables/sighting_reports/${id}`);
     }
-
     async createReport(reportData) {
         // Add timestamp to report
         reportData.report_date = new Date().toISOString();
@@ -76,57 +65,48 @@ class InvasiveSpeciesAPI {
             body: JSON.stringify(reportData)
         });
     }
-
     async updateReport(id, reportData) {
         return await this.makeRequest(`tables/sighting_reports/${id}`, {
             method: 'PATCH',
             body: JSON.stringify(reportData)
         });
     }
-
     async verifyReport(id, verifierName, status) {
         return await this.updateReport(id, {
             verification_status: status,
             verified_by: verifierName
         });
     }
-
     // Monitoring Locations API methods
     async getMonitoringLocations(params = {}) {
         const queryString = new URLSearchParams(params).toString();
         const endpoint = `tables/monitoring_locations${queryString ? '?' + queryString : ''}`;
         return await this.makeRequest(endpoint);
     }
-
     async getLocationById(id) {
         return await this.makeRequest(`tables/monitoring_locations/${id}`);
     }
-
     async createLocation(locationData) {
         return await this.makeRequest('tables/monitoring_locations', {
             method: 'POST',
             body: JSON.stringify(locationData)
         });
     }
-
     async updateLocation(id, locationData) {
         return await this.makeRequest(`tables/monitoring_locations/${id}`, {
             method: 'PUT',
             body: JSON.stringify(locationData)
         });
     }
-
     // Users API methods
     async getUsers(params = {}) {
         const queryString = new URLSearchParams(params).toString();
         const endpoint = `tables/users${queryString ? '?' + queryString : ''}`;
         return await this.makeRequest(endpoint);
     }
-
     async getUserById(id) {
         return await this.makeRequest(`tables/users/${id}`);
     }
-
     async createUser(userData) {
         userData.registration_date = new Date().toISOString();
         userData.last_login = new Date().toISOString();
@@ -139,14 +119,12 @@ class InvasiveSpeciesAPI {
             body: JSON.stringify(userData)
         });
     }
-
     async updateUser(id, userData) {
         return await this.makeRequest(`tables/users/${id}`, {
             method: 'PATCH',
             body: JSON.stringify(userData)
         });
     }
-
     // Search and filtering methods
     async searchSpecies(query) {
         const params = {
@@ -155,7 +133,6 @@ class InvasiveSpeciesAPI {
         };
         return await this.getSpecies(params);
     }
-
     async getReportsByThreatLevel(threatLevel) {
         const params = {
             search: threatLevel,
@@ -163,7 +140,6 @@ class InvasiveSpeciesAPI {
         };
         return await this.getReports(params);
     }
-
     async getRecentReports(limit = 10) {
         const params = {
             limit: limit,
@@ -171,14 +147,12 @@ class InvasiveSpeciesAPI {
         };
         return await this.getReports(params);
     }
-
     // Analytics methods
     async getSpeciesStats() {
         const species = await this.getSpecies({ limit: 1000 });
         const reports = await this.getReports({ limit: 1000 });
         const locations = await this.getMonitoringLocations({ limit: 1000 });
         const users = await this.getUsers({ limit: 1000 });
-
         return {
             totalSpecies: species.total || species.data?.length || 0,
             activeReports: reports.data?.filter(r => r.verification_status === 'Pending' || r.verification_status === 'Verified').length || 0,
@@ -191,7 +165,6 @@ class InvasiveSpeciesAPI {
             users: users.data || []
         };
     }
-
     // Threat level distribution
     getThreatLevelDistribution(species) {
         const distribution = {};
@@ -201,7 +174,6 @@ class InvasiveSpeciesAPI {
         });
         return distribution;
     }
-
     // Habitat type distribution
     getHabitatDistribution(reports) {
         const distribution = {};
@@ -222,7 +194,6 @@ class InvasiveSpeciesAPI {
         });
         return distribution;
     }
-
     // Monthly reports trend
     getMonthlyReports(reports) {
         const monthly = {};
@@ -234,7 +205,6 @@ class InvasiveSpeciesAPI {
             const key = date.toISOString().substring(0, 7); // YYYY-MM format
             monthly[key] = 0;
         }
-
         // Count reports by month
         reports.forEach(report => {
             if (report.report_date || report.created_at) {
@@ -245,10 +215,8 @@ class InvasiveSpeciesAPI {
                 }
             }
         });
-
         return monthly;
     }
-
     // Verification status distribution
     getVerificationDistribution(reports) {
         const distribution = {};
@@ -258,14 +226,12 @@ class InvasiveSpeciesAPI {
         });
         return distribution;
     }
-
     // User authentication simulation (simplified for static site)
     async authenticateUser(email, name, userType) {
         try {
             // Try to find existing user
             const users = await this.getUsers({ search: email, limit: 1 });
             let user;
-
             if (users.data && users.data.length > 0) {
                 // User exists, update last login
                 user = users.data[0];
@@ -285,7 +251,6 @@ class InvasiveSpeciesAPI {
                 };
                 user = await this.createUser(userData);
             }
-
             this.currentUser = user;
             return user;
         } catch (error) {
@@ -293,15 +258,35 @@ class InvasiveSpeciesAPI {
             throw error;
         }
     }
-
     // Get current user
     getCurrentUser() {
         return this.currentUser;
     }
-
     // Logout
     logout() {
         this.currentUser = null;
+    }
+
+    // NASA EARTH IMAGERY API (with your API key)
+    /**
+     * Fetch a NASA satellite image for a given lat/lon and date.
+     * Returns a blob URL that can be set as an <img src=...>
+     * Uses your provided NASA API key.
+     */
+    async getNasaSatelliteImage(lat, lon, date = '2020-01-01') {
+        const apiKey = 'tIGJe2mWKLPUNRdhKRJdu3ExjUJuXzYvwHu6spgc';
+        const endpoint =
+            `https://api.nasa.gov/planetary/earth/imagery?lon=${lon}&lat=${lat}&date=${date}&dim=0.1&api_key=${apiKey}`;
+        try {
+            const response = await fetch(endpoint);
+            if (!response.ok) throw new Error('NASA imagery error: ' + response.status);
+            // This returns an image directly
+            const imageBlob = await response.blob();
+            return URL.createObjectURL(imageBlob); // Use as <img src=...>
+        } catch (err) {
+            console.error('Could not fetch NASA satellite data', err);
+            throw err;
+        }
     }
 }
 
